@@ -112,7 +112,10 @@ const Header = () => (
       <h1 className="text-2xl font-bold flex items-center gap-2">
         <Icons.Droplet /> KidneyCare
       </h1>
-      <p className="text-blue-100 text-sm mt-1 opacity-90">Arm-Powered Offline Health 🇱🇰</p>
+      <div className="flex items-center justify-between mt-2">
+        <p className="text-blue-100 text-sm opacity-90">Arm-Powered Offline Health 🇱🇰</p>
+        {isDemo && <span className="text-xs bg-blue-700 px-2 py-1 rounded-full">Demo Mode</span>}
+      </div>
     </div>
   </header>
 );
