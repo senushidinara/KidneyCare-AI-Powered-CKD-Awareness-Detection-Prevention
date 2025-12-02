@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
+import { isDemo, DEMO_ESSAYS, DEMO_CHAT_RESPONSES } from './config';
 
 // --- Icons (Inline SVG) ---
 const Icons = {
