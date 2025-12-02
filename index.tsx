@@ -127,32 +127,40 @@ const EssayGenerator = () => {
     setLoading(true);
     setEssay("");
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      const prompt = `Write a detailed 2000-word educational guide about: "${topic}". 
-      Structure:
-      1. Introduction & Physiology
-      2. Relevance to Sri Lanka (Statistics, geography like Rajarata)
-      3. Causes & Risk Factors (Local context)
-      4. Symptoms & Early Warning Signs
-      5. Diagnosis & Treatment
-      6. Prevention (Dietary specifics like Kurakkan, Red Rice, hydration)
-      7. Conclusion.
-      Ensure the content is medically accurate but accessible.`;
+      if (isDemo) {
+        // Demo mode: simulate delay and return pre-written essay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        const demoEssay = DEMO_ESSAYS[topic as keyof typeof DEMO_ESSAYS];
+        setEssay(demoEssay || `# Essay on ${topic}\n\n[Demo Mode] This is a demonstration. Features are available in full when you add your API key.`);
+      } else {
+        // Real mode: use Google Generative AI
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-      const result = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        config: {
-            systemInstruction: "You are a specialized medical educator for Sri Lankan kidney health. Write comprehensive, 2000-word structured essays. Format with clear Markdown headers, bullet points for symptoms/prevention, and bold text for key terms. Focus heavily on local context (Sri Lankan diet, agriculture, heat stress, Ayurvedic perspectives vs Western medicine). Tone: Professional, empathetic, educational."
-        },
-        contents: prompt
-      });
+        const prompt = `Write a detailed 2000-word educational guide about: "${topic}".
+        Structure:
+        1. Introduction & Physiology
+        2. Relevance to Sri Lanka (Statistics, geography like Rajarata)
+        3. Causes & Risk Factors (Local context)
+        4. Symptoms & Early Warning Signs
+        5. Diagnosis & Treatment
+        6. Prevention (Dietary specifics like Kurakkan, Red Rice, hydration)
+        7. Conclusion.
+        Ensure the content is medically accurate but accessible.`;
 
-      const text = result.text;
-      setEssay(text);
+        const result = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          config: {
+              systemInstruction: "You are a specialized medical educator for Sri Lankan kidney health. Write comprehensive, 2000-word structured essays. Format with clear Markdown headers, bullet points for symptoms/prevention, and bold text for key terms. Focus heavily on local context (Sri Lankan diet, agriculture, heat stress, Ayurvedic perspectives vs Western medicine). Tone: Professional, empathetic, educational."
+          },
+          contents: prompt
+        });
+
+        const text = result.text;
+        setEssay(text);
+      }
     } catch (error) {
       console.error("Error generating essay:", error);
-      setEssay("Sorry, I couldn't generate the essay offline. Please check your connection if using the AI feature.");
+      setEssay("Sorry, I couldn't generate the essay. Please check your API key or internet connection.");
     } finally {
       setLoading(false);
     }
