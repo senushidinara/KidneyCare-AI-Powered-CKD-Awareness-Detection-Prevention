@@ -673,6 +673,26 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const getDemoResponse = (userMessage: string) => {
+    const lowerMessage = userMessage.toLowerCase();
+
+    if (lowerMessage.includes('water') || lowerMessage.includes('hydrat') || lowerMessage.includes('drink')) {
+      return DEMO_CHAT_RESPONSES.hydration;
+    } else if (lowerMessage.includes('symptom') || lowerMessage.includes('pain') || lowerMessage.includes('swelling')) {
+      return DEMO_CHAT_RESPONSES.symptoms;
+    } else if (lowerMessage.includes('diet') || lowerMessage.includes('food') || lowerMessage.includes('rice') || lowerMessage.includes('salt')) {
+      return DEMO_CHAT_RESPONSES.diet;
+    } else if (lowerMessage.includes('ckdu') || lowerMessage.includes('rajarata')) {
+      return DEMO_CHAT_RESPONSES.ckdu;
+    } else if (lowerMessage.includes('exercise') || lowerMessage.includes('workout') || lowerMessage.includes('activity')) {
+      return DEMO_CHAT_RESPONSES.exercise;
+    } else if (lowerMessage.includes('medicine') || lowerMessage.includes('medication') || lowerMessage.includes('painkiller') || lowerMessage.includes('nsaid')) {
+      return DEMO_CHAT_RESPONSES.medication;
+    } else {
+      return DEMO_CHAT_RESPONSES.default;
+    }
+  };
+
   const sendMessage = async () => {
     if (!input) return;
     const newMsgs = [...messages, { role: 'user', text: input }];
@@ -681,17 +701,25 @@ const Chat = () => {
     setLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      const result = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        config: {
-             systemInstruction: "You are a helpful nephrology assistant for Sri Lankans. Keep answers short (under 50 words), simple, and culturally relevant. Mention seeing a doctor for serious issues."
-        },
-        contents: newMsgs.map(m => ({ role: m.role === 'model' ? 'model' : 'user', parts: [{ text: m.text }] }))
-      });
-      
-      setMessages([...newMsgs, { role: 'model', text: result.text }]);
+      if (isDemo) {
+        // Demo mode: simulate delay and return demo response
+        await new Promise(resolve => setTimeout(resolve, 800));
+        const demoResponse = getDemoResponse(input);
+        setMessages([...newMsgs, { role: 'model', text: demoResponse }]);
+      } else {
+        // Real mode: use Google Generative AI
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+        const result = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          config: {
+               systemInstruction: "You are a helpful nephrology assistant for Sri Lankans. Keep answers short (under 50 words), simple, and culturally relevant. Mention seeing a doctor for serious issues."
+          },
+          contents: newMsgs.map(m => ({ role: m.role === 'model' ? 'model' : 'user', parts: [{ text: m.text }] }))
+        });
+
+        setMessages([...newMsgs, { role: 'model', text: result.text }]);
+      }
     } catch (e) {
       setMessages([...newMsgs, { role: 'model', text: "I'm having trouble connecting. Please check your internet." }]);
     }
